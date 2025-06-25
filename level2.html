@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>第二關 - 拼圖遊戲（SDG15）</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", sans-serif;
+      background-image: url('https://img.tukuppt.com/bg_grid/00/32/25/YmfaUdgexE.jpg!/fh/350');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: white;
+    }
+    #author {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 14px;
+      color: #eee;
+      z-index: 11;
+    }
+    #overlay {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.85);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      color: white;
+      padding: 20px;
+    }
+    #overlay button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 20px;
+      background-color: #44c767;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+      text-shadow: 2px 2px 4px #000;
+    }
+    #container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 40px;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
+    #puzzle {
+      width: 600px;
+      height: 600px;
+      display: flex;
+      flex-wrap: wrap;
+      border: 5px solid #fff;
+      background-color: rgba(0,0,0,0.3);
+    }
+    .tile {
+      width: 100px;
+      height: 100px;
+      background-image: url('https://images.unsplash.com/photo-1558981403-c5f9897f5bdd?fit=crop&w=600&h=600');
+      background-size: 600px 600px;
+      box-sizing: border-box;
+      border: 1px solid #444;
+    }
+    #message {
+      font-size: 1.5em;
+      margin-top: 15px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 10px;
+      border: none;
+      background: #44c767;
+      color: white;
+    }
+    #reference img {
+      width: 200px;
+      border: 3px solid #fff;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    #reference img:hover {
+      transform: scale(1.05);
+    }
+    #reference {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="author">作者：許群士</div>
+
+<div id="overlay">
+  <h2>第二關任務說明</h2>
+  <p>這是一個森林保育主題的拼圖遊戲，<br>
+    請依照右方參考圖片，<br>將拼圖正確排列完成。<br>
+    完成後即可前往下一關！</p>
+  <button onclick="startGame()">確認開始</button>
+</div>
+
+<h1>第二關：拼圖挑戰（SDG15）</h1>
+
+<div id="container">
+  <div>
+    <div id="puzzle"></div>
+    <div style="text-align: center;">
+      <button onclick="resetGame()">重新開始</button>
+    </div>
+    <div id="message"></div>
+  </div>
+
+  <div id="reference">
+    <h3>參考圖片</h3>
+    <a href="https://images.unsplash.com/photo-1558981403-c5f9897f5bdd?fit=crop&w=600&h=600" target="_blank">
+      <img src="https://images.unsplash.com/photo-1558981403-c5f9897f5bdd?fit=crop&w=600&h=600" alt="參考圖片">
+    </a>
+    <p style="font-size: 14px;">點擊可放大</p>
+  </div>
+</div>
+
+<audio autoplay loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/10/31/audio_9a5a8db228.mp3?filename=forest-lullaby-122841.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  const puzzle = document.getElementById("puzzle");
+  const message = document.getElementById("message");
+  const overlay = document.getElementById("overlay");
+
+  const rows = 6;
+  const cols = 6;
+  let tiles = [];
+
+  function createTiles() {
+    tiles = [];
+    for (let i = 0; i < rows * cols; i++) {
+      const tile = document.createElement("div");
+      tile.className = "tile";
+      tile.dataset.index = i;
+      tile.style.backgroundPosition = `-${(i % cols) * 100}px -${Math.floor(i / cols) * 100}px`;
+      tile.draggable = true;
+      tile.addEventListener("dragstart", dragStart);
+      tile.addEventListener("dragover", dragOver);
+      tile.addEventListener("drop", drop);
+      tiles.push(tile);
+    }
+  }
+
+  function shuffleTiles() {
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+  }
+
+  function renderTiles() {
+    puzzle.innerHTML = "";
+    tiles.forEach(tile => puzzle.appendChild(tile));
+  }
+
+  let dragged;
+
+  function dragStart(e) {
+    dragged = e.target;
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    const target = e.target;
+    const draggedIndex = tiles.indexOf(dragged);
+    const targetIndex = tiles.indexOf(target);
+    [tiles[draggedIndex], tiles[targetIndex]] = [tiles[targetIndex], tiles[draggedIndex]];
+    renderTiles();
+    checkWin();
+  }
+
+  function checkWin() {
+    for (let i = 0; i < tiles.length; i++) {
+      if (parseInt(tiles[i].dataset.index) !== i) return;
+    }
+    message.innerHTML = `
+      🎉 恭喜完成拼圖！<br><br>
+      <button onclick="confirmFinish()">確認完成</button>
+    `;
+  }
+
+  function confirmFinish() {
+    message.innerHTML = `<h2>🎉 恭喜過關！你已完成第二關任務！</h2>`;
+  }
+
+  function startGame() {
+    overlay.style.display = "none";
+    createTiles();
+    shuffleTiles();
+    renderTiles();
+    message.textContent = "";
+  }
+
+  function resetGame() {
+    shuffleTiles();
+    renderTiles();
+    message.textContent = "";
+  }
+
+  // 初始化拼圖
+  createTiles();
+  renderTiles();
+</script>
+
+</body>
+</html>
